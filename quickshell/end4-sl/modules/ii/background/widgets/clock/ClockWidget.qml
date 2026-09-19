@@ -11,8 +11,11 @@ import qs.modules.ii.background.widgets
 AbstractBackgroundWidget {
     id: root
 
+    property var screen: null
     configEntryName: "clock"
 
+    width: implicitWidth
+    height: implicitHeight
     implicitHeight: contentColumn.implicitHeight
     implicitWidth: contentColumn.implicitWidth
 
@@ -27,17 +30,84 @@ AbstractBackgroundWidget {
     }
     property bool wallpaperSafetyTriggered: false
     needsColText: clockStyle === "digital"
-    x: forceCenter ? ((root.screenWidth - root.width) / 2) : targetX
-    y: forceCenter ? ((root.screenHeight - root.height) / 2) : targetY
+
+    animateXPos: false
+    animateYPos: false
+
+    readonly property real centerX: (root.screenWidth - root.width) / 2
+    readonly property real centerY: (root.screenHeight - root.height) / 2
+
+    readonly property string screenName: root.screen?.name ?? (Quickshell.screens.length > 0 ? Quickshell.screens[0]?.name : "default")
+    readonly property var savedDesktopPos: GlobalStates.clockDesktopPositions[screenName]
+    readonly property real startX: savedDesktopPos !== undefined ? savedDesktopPos.x : targetX
+    readonly property real startY: savedDesktopPos !== undefined ? savedDesktopPos.y : targetY
+
+    property real centerProgress: 0.0
+
+    x: startX + centerProgress * (centerX - startX)
+    y: startY + centerProgress * (centerY - startY)
     visibleWhenLocked: true
 
+    NumberAnimation {
+        id: toCenterAnim
+        target: root
+        property: "centerProgress"
+        duration: Appearance.animationCurves.expressiveSlowSpatialDuration
+        easing.type: Appearance.animation.elementMove.type
+        easing.bezierCurve: Appearance.animationCurves.expressiveDefaultSpatial
+    }
+
+    NumberAnimation {
+        id: toDesktopAnim
+        target: root
+        property: "centerProgress"
+        duration: Appearance.animation.elementMove.duration
+        easing.type: Appearance.animation.elementMove.type
+        easing.bezierCurve: Appearance.animationCurves.expressiveDefaultSpatial
+    }
+
+    function updateDesktopPosition() {
+        if (GlobalStates.screenLocked || root.forceCenter) return;
+        var next = Object.assign({}, GlobalStates.clockDesktopPositions);
+        next[screenName] = { x: root.targetX, y: root.targetY };
+        GlobalStates.clockDesktopPositions = next;
+    }
+
+    onTargetXChanged: updateDesktopPosition()
+    onTargetYChanged: updateDesktopPosition()
+
+    onForceCenterChanged: {
+        if (forceCenter) {
+            toDesktopAnim.stop();
+            toCenterAnim.from = root.centerProgress;
+            toCenterAnim.to = 1.0;
+            toCenterAnim.restart();
+        } else {
+            toCenterAnim.stop();
+            toDesktopAnim.from = root.centerProgress;
+            toDesktopAnim.to = 0.0;
+            toDesktopAnim.restart();
+        }
+    }
+
+    Component.onCompleted: {
+        if (!GlobalStates.screenLocked && !root.forceCenter) {
+            updateDesktopPosition();
+        } else if (root.forceCenter) {
+            toDesktopAnim.stop();
+            toCenterAnim.from = 0.0;
+            toCenterAnim.to = 1.0;
+            toCenterAnim.restart();
+        }
+    }
+
     function restoreXYBinding() {
-        root.x = Qt.binding(() => root.forceCenter ? ((root.screenWidth - root.width) / 2) : root.targetX);
-        root.y = Qt.binding(() => root.forceCenter ? ((root.screenHeight - root.height) / 2) : root.targetY);
+        root.x = Qt.binding(() => root.startX + root.centerProgress * (root.centerX - root.startX));
+        root.y = Qt.binding(() => root.startY + root.centerProgress * (root.centerY - root.startY));
     }
 
     property var textHorizontalAlignment: {
-        if (!Config.options.background.widgets.clock.digital.adaptiveAlignment || root.forceCenter || Config.options.background.widgets.clock.digital.vertical) 
+        if (!Config.options.background.widgets.clock.digital.adaptiveAlignment || root.centerProgress > 0.5 || Config.options.background.widgets.clock.digital.vertical) 
             return Text.AlignHCenter;
         if (root.x < root.scaledScreenWidth / 3)
             return Text.AlignLeft;

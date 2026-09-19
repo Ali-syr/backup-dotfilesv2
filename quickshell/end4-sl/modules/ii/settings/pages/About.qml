@@ -47,7 +47,7 @@ ContentPage {
             rm -rf "$DIR/end4-pC-old"
         `
 
-        Quickshell.execDetached(["kitty", "--hold", "bash", "-c", updateScript])
+        Quickshell.execDetached(["ghostty", "--hold", "bash", "-c", updateScript])
         Qt.callLater(() => GlobalStates.settingsOpen = false)
     }
 

@@ -143,6 +143,7 @@ Item {
     Component {
         id: clockComp
         ClockWidget {
+            screen: root.screen
             screenWidth: root.screen.width
             screenHeight: root.screen.height
             scaledScreenWidth: root.screen.width

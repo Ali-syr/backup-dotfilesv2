@@ -45,6 +45,7 @@ Singleton {
     property bool dropShelfOpen: false
     property real dropShelfX: 0
     property real dropShelfY: 0
+    property var clockDesktopPositions: ({})
 
     signal centeredWallpaperThumpRequested()
 

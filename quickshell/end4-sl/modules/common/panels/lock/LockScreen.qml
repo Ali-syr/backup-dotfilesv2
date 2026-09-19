@@ -23,7 +23,11 @@ Scope {
             property var screen: sessionLockSurface.screen
             opacity: active ? 1 : 0
             Behavior on opacity {
-                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+                NumberAnimation {
+                    duration: Appearance.animation.elementMoveFast.duration
+                    easing.type: Appearance.animation.elementMoveFast.type
+                    easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve
+                }
             }
             sourceComponent: root.lockSurface
         }

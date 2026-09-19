@@ -16,15 +16,17 @@ require("hyprland.autostart")
 -- Source ~./config/hypr/hyprland/hyprland.keybinds
 require("hyprland.keybinds")
 
+-- Source
+require("hyprland.colors")
+
 -- Source ~./config/hypr/hyprland/hyprland.environment
 require("hyprland.environment")
 
--- Source ~./config/hypr/hyprland/hyprland.decorations
-require("hyprland.decorations")
+-- Source ~./config/hypr/hyprland/shellOverrides.main
+require("hyprland/shellOverrides.main")
 
--- Source ~./config/hypr/hyprland/hyprland.animations
--- require("hyprland.animations")
- require("hyprland/shellOverrides/animations")
+-- Source ~./config/hypr/hyprland/shellOverrides.animations
+ require("hyprland/shellOverrides.animations")
 
 -- Source ~./config/hypr/hyprland/hyprland.windowrules
 require("hyprland.windowrules")
